@@ -1,19 +1,29 @@
 # cdb-mails
 
-Plugin WordPress para la gestión y automatización de envíos de correos electrónicos en [proyectocdb.es](https://proyectocdb.es).
+Plugin WordPress para la gestión de notificaciones por correo electrónico. Este repositorio contiene el esqueleto inicial del plugin preparado para futuras ampliaciones.
 
-## Características principales
+## Estructura
 
-- Gestión de plantillas de correo electrónico personalizables.
-- Automatización de notificaciones por email a usuarios sobre valoraciones, criterios, eventos, ofertas de empleo y más.
-- Integración con eventos clave del sistema y otros plugins de Proyecto CdB.
-- Configuración avanzada de envío (SMTP, remitente, logs de envíos).
+```
+cdb-mails.php           Archivo principal del plugin
+inc/
+  admin.php             Funciones administrativas y páginas del panel
+  mailer.php            Punto de inicio para el envío de correos
+  templates.php         Gestión básica de plantillas de correo
+assets/
+  js/                   Directorio para scripts (vacío por ahora)
+  css/                  Directorio para estilos (vacío por ahora)
+```
 
 ## Instalación
 
-1. Sube la carpeta `cdb-mails` al directorio `wp-content/plugins/`.
+1. Copia la carpeta `cdb-mails` en el directorio `wp-content/plugins/`.
 2. Activa el plugin desde el panel de administración de WordPress.
-3. Configura las plantillas y opciones desde el menú “Mails”.
+3. Accede al menú **Mails** para ver la página de bienvenida.
+
+## Propósito
+
+El objetivo es proporcionar una base limpia para desarrollar un sistema de notificaciones por correo. Actualmente solo se crea el menú en el administrador y se incluyen archivos preparados para añadir la lógica de envío y de plantillas en versiones posteriores.
 
 ## Licencia
 
