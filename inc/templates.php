@@ -21,9 +21,12 @@ function cdb_mails_templates_table() {
  */
 function cdb_mails_available_vars() {
     $vars = array(
-        '{user_name}' => 'Nombre de usuario',
-        '{bar_name}'  => 'Nombre del bar',
-        '{date}'      => 'Fecha',
+        '{send_date}'         => 'Fecha de envío',
+        '{user_name}'         => 'Nombre de usuario',
+        '{bar_name}'          => 'Nombre del bar',
+        '{valoracion_resumen}' => 'Resumen de la valoración',
+        '{profile_url}'       => 'Enlace al perfil',
+        '{review_date}'       => 'Fecha de la valoración',
     );
 
     return apply_filters( 'cdb_mails_template_vars', $vars );
@@ -49,6 +52,17 @@ function cdb_mails_get_template_by_id( $id ) {
     $table = cdb_mails_templates_table();
 
     return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE id = %d", $id ), ARRAY_A );
+}
+
+/**
+ * Obtener una plantilla por su nombre exacto.
+ */
+function cdb_mails_get_template_by_name( $name ) {
+    global $wpdb;
+
+    $table = cdb_mails_templates_table();
+
+    return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE name = %s", $name ), ARRAY_A );
 }
 
 /**
@@ -113,6 +127,103 @@ function cdb_mails_get_template( $template_name ) {
 }
 
 /**
+ * Crear la plantilla por defecto si no existe.
+ */
+function cdb_mails_ensure_default_template() {
+    $name = 'Nueva valoración recibida';
+
+    if ( cdb_mails_get_template_by_name( $name ) ) {
+        return;
+    }
+
+    $body = <<<HTML
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Notificación de Nueva Valoración</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+<body style="background: #faf8ee; color: #232323; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background: #faf8ee;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background: #faf8ee; margin: 32px auto;">
+          <tr>
+            <td style="padding: 32px 0 16px 0;">
+              <!-- Logo y fecha de envío -->
+              <table width="100%">
+                <tr>
+                  <td align="left" style="font-size: 2.5em; font-weight: bold; letter-spacing: -2px;">
+                    CdB_
+                  </td>
+                  <td align="right" style="font-size: 1em; color: #232323;">
+                    {send_date}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <hr style="border: none; border-top: 2px solid #232323; margin: 0 0 32px 0;">
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 0 16px 0;">
+              <h1 style="font-size: 2em; font-weight: bold; margin: 0 0 24px 0;">
+                ¡Tienes una nueva valoración!
+              </h1>
+              <div style="font-size: 1.2em; margin-bottom: 24px;">
+                Hola {user_name},<br><br>
+                Has recibido una <b>nueva valoración</b> por tu trabajo en <b>{bar_name}</b>.<br><br>
+                <b>Resumen:</b><br>
+                {valoracion_resumen}
+              </div>
+              <div style="margin-bottom: 24px;">
+                <a href="{profile_url}" style="display:inline-block;padding:10px 24px;border-radius:6px;background:#232323;color:#faf8ee;font-weight:bold;text-decoration:none;font-size:1.1em;">
+                  Ver mi perfil
+                </a>
+              </div>
+              <div style="font-size: 1em; color: #555;">
+                Si tienes dudas sobre tu valoración, revisa tu perfil en la plataforma o contacta con el equipo.<br><br>
+                ¡Gracias por tu profesionalidad!
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <hr style="border: none; border-top: 2px solid #232323; margin: 32px 0 0 0;">
+            </td>
+          </tr>
+          <tr>
+            <td align="right" style="font-size: 1em; color: #232323; padding-top: 16px;">
+              Equipo Proyecto CdB
+            </td>
+          </tr>
+          <tr>
+            <td align="right" style="font-size: 0.9em; color: #232323; padding-top: 8px;">
+              Valoración recibida el {review_date}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+HTML;
+
+    $data = array(
+        'name'    => $name,
+        'subject' => '¡Has recibido una nueva valoración!',
+        'body'    => $body,
+    );
+
+    cdb_mails_save_template( $data );
+}
+
+/**
  * Registrar el submenú de plantillas dentro de "Mails".
  */
 function cdb_mails_templates_admin_menu() {
@@ -151,6 +262,7 @@ function cdb_mails_render_templates_page() {
         return;
     }
 
+    cdb_mails_ensure_default_template();
     cdb_mails_render_templates_list();
 }
 
