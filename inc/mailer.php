@@ -16,6 +16,11 @@ function cdb_mails_send_email( $to, $subject, $message, $headers = array(), $att
         return false;
     }
 
+    // Registrar intento de envío para depuración.
+    if ( function_exists( 'cdb_mails_log' ) ) {
+        cdb_mails_log( 'Llamada a wp_mail() para ' . $to );
+    }
+
     $content_type = 'Content-Type: text/html; charset=UTF-8';
 
     if ( empty( $headers ) ) {
@@ -61,6 +66,9 @@ add_action( 'cdb_grafica_insert_empleado_result', 'cdb_mails_handle_empleado_res
  */
 function cdb_mails_new_valoracion_notification( $post_id, $post, $update ) {
     // Evitar envíos durante autosave o al actualizar una valoración existente.
+    if ( function_exists( 'cdb_mails_log' ) ) {
+        cdb_mails_log( 'Hook save_post_* disparado para post ' . $post_id );
+    }
     if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
         return;
     }
@@ -121,9 +129,15 @@ function cdb_mails_new_valoracion_notification( $post_id, $post, $update ) {
  * función global encargada de enviar la notificación.
  */
 function cdb_mails_handle_bar_result( $review_id ) {
+    if ( function_exists( 'cdb_mails_log' ) ) {
+        cdb_mails_log( 'Hook cdb_grafica_insert_bar_result recibido para ID ' . $review_id );
+    }
     cdb_mails_send_new_review_notification( $review_id, 'bar' );
 }
 
 function cdb_mails_handle_empleado_result( $review_id ) {
+    if ( function_exists( 'cdb_mails_log' ) ) {
+        cdb_mails_log( 'Hook cdb_grafica_insert_empleado_result recibido para ID ' . $review_id );
+    }
     cdb_mails_send_new_review_notification( $review_id, 'empleado' );
 }
