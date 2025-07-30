@@ -16,8 +16,26 @@ function cdb_mails_send_email( $to, $subject, $message, $headers = array(), $att
         return false;
     }
 
+    $content_type = 'Content-Type: text/html; charset=UTF-8';
+
     if ( empty( $headers ) ) {
-        $headers = array( 'Content-Type: text/html; charset=UTF-8' );
+        $headers = array( $content_type );
+    } else {
+        if ( ! is_array( $headers ) ) {
+            $headers = array( $headers );
+        }
+
+        $has_content_type = false;
+        foreach ( $headers as $header ) {
+            if ( stripos( $header, 'content-type' ) !== false ) {
+                $has_content_type = true;
+                break;
+            }
+        }
+
+        if ( ! $has_content_type ) {
+            $headers[] = $content_type;
+        }
     }
 
     return wp_mail( $to, $subject, $message, $headers, $attachments );

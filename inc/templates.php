@@ -390,7 +390,7 @@ function cdb_mails_render_send_test_form( $id ) {
             $subject = str_replace( array_keys( $test_vars ), array_values( $test_vars ), $template['subject'] );
             $body    = str_replace( array_keys( $test_vars ), array_values( $test_vars ), $template['body'] );
 
-            $sent = wp_mail( $email, $subject, $body );
+            $sent = cdb_mails_send_email( $email, $subject, $body );
 
             if ( $sent ) {
                 echo '<div class="updated notice"><p>Email de prueba enviado correctamente a ' . esc_html( $email ) . '.</p></div>';
