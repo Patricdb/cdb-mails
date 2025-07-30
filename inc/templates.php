@@ -63,12 +63,13 @@ function cdb_mails_save_template( $data, $id = 0 ) {
         $wpdb->update(
             $table,
             array(
-                'name'    => $data['name'],
-                'subject' => $data['subject'],
-                'body'    => $data['body'],
+                'name'       => $data['name'],
+                'subject'    => $data['subject'],
+                'body'       => $data['body'],
+                'updated_at' => current_time( 'mysql' ),
             ),
             array( 'id' => $id ),
-            array( '%s', '%s', '%s' ),
+            array( '%s', '%s', '%s', '%s' ),
             array( '%d' )
         );
         return $id;
@@ -77,11 +78,13 @@ function cdb_mails_save_template( $data, $id = 0 ) {
     $wpdb->insert(
         $table,
         array(
-            'name'    => $data['name'],
-            'subject' => $data['subject'],
-            'body'    => $data['body'],
+            'name'       => $data['name'],
+            'subject'    => $data['subject'],
+            'body'       => $data['body'],
+            'created_at' => current_time( 'mysql' ),
+            'updated_at' => current_time( 'mysql' ),
         ),
-        array( '%s', '%s', '%s' )
+        array( '%s', '%s', '%s', '%s', '%s' )
     );
 
     return $wpdb->insert_id;
