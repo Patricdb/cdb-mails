@@ -41,6 +41,10 @@ function cdb_mails_send_email( $to, $subject, $message, $headers = array(), $att
     return wp_mail( $to, $subject, $message, $headers, $attachments );
 }
 
+// Lanzar la notificación cuando se publica una nueva valoración. El CPT puede
+// llamarse "cdb_valoracion" u "valoracion". Registramos el hook para ambos por
+// compatibilidad con diferentes implementaciones del sitio.
+add_action( 'save_post_cdb_valoracion', 'cdb_mails_new_valoracion_notification', 10, 3 );
 add_action( 'save_post_valoracion', 'cdb_mails_new_valoracion_notification', 10, 3 );
 
 /**
@@ -51,7 +55,12 @@ add_action( 'save_post_valoracion', 'cdb_mails_new_valoracion_notification', 10,
  * @param bool    $update  Whether this is an existing post being updated.
  */
 function cdb_mails_new_valoracion_notification( $post_id, $post, $update ) {
+    // Evitar envíos durante autosave o al actualizar una valoración existente.
     if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+        return;
+    }
+
+    if ( $update ) { // Solo en creaciones nuevas, no en ediciones.
         return;
     }
 
@@ -88,7 +97,9 @@ function cdb_mails_new_valoracion_notification( $post_id, $post, $update ) {
         '{send_date}'          => date_i18n( get_option( 'date_format' ) ),
         '{user_name}'          => $user->display_name,
         '{bar_name}'           => get_post_meta( $post_id, 'bar_name', true ),
-        '{valoracion_resumen}' => wp_trim_words( $post->post_content, 55 ),
+        // Resumen de la valoración. Si no existe el meta, se recorta el contenid
+        // o de la valoración como fallback.
+        '{valoracion_resumen}' => get_post_meta( $post_id, 'valoracion_resumen', true ) ? get_post_meta( $post_id, 'valoracion_resumen', true ) : wp_trim_words( $post->post_content, 55 ),
         '{profile_url}'        => get_permalink( $employee_id ),
         '{review_date}'        => get_the_date( get_option( 'date_format' ), $post_id ),
     );
