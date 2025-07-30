@@ -164,13 +164,14 @@ function cdb_mails_render_templates_list() {
         echo '<p>No hay plantillas creadas.</p>';
     } else {
         echo '<table class="widefat">';
-        echo '<thead><tr><th>Nombre</th><th>Asunto</th><th>Acciones</th></tr></thead><tbody>';
+        echo '<thead><tr><th>ID</th><th>Nombre</th><th>Asunto</th><th>Acciones</th></tr></thead><tbody>';
 
         foreach ( $templates as $template ) {
             $edit_link   = esc_url( admin_url( 'admin.php?page=cdb-mail-templates&action=edit&id=' . $template['id'] ) );
             $delete_link = wp_nonce_url( admin_url( 'admin.php?page=cdb-mail-templates&action=delete&id=' . $template['id'] ), 'cdb_mails_delete_template_' . $template['id'] );
 
             echo '<tr>';
+            echo '<td>' . esc_html( $template['id'] ) . '</td>';
             echo '<td>' . esc_html( $template['name'] ) . '</td>';
             echo '<td>' . esc_html( $template['subject'] ) . '</td>';
             echo '<td>';
