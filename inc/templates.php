@@ -24,6 +24,7 @@ function cdb_mails_available_vars() {
         '{send_date}'         => 'Fecha de envío',
         '{user_name}'         => 'Nombre de usuario',
         '{bar_name}'          => 'Nombre del bar',
+        '{intro_text}'        => 'Texto principal',
         '{valoracion_resumen}' => 'Resumen de la valoración',
         '{profile_url}'       => 'Enlace al perfil',
         '{review_date}'       => 'Fecha de la valoración',
@@ -173,8 +174,8 @@ function cdb_mails_ensure_default_template() {
               </h1>
               <div style="font-size: 1.2em; margin-bottom: 24px;">
                 Hola {user_name},<br><br>
-                Has recibido una <b>nueva valoración</b> por tu trabajo en <b>{bar_name}</b>.<br><br>
-                <b>Resumen:</b><br>
+                {intro_text}<br><br>
+                <b>Resumen de criterios valorados:</b><br>
                 {valoracion_resumen}
               </div>
               <div style="margin-bottom: 24px;">

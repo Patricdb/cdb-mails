@@ -137,10 +137,13 @@ function cdb_mails_new_valoracion_notification( $post_id, $post, $update ) {
         return;
     }
 
+    // Variables para sustituir en la plantilla. Se construye la frase principal
+    // usando el nombre del empleado valorado.
     $vars = array(
         '{send_date}'          => date_i18n( get_option( 'date_format' ) ),
         '{user_name}'          => $user->display_name,
         '{bar_name}'           => get_post_meta( $post_id, 'bar_name', true ),
+        '{intro_text}'         => 'Has recibido una nueva valoración para tu empleado <b>' . get_the_title( $employee_id ) . '</b>',
         // Resumen de la valoración. Si no existe el meta, se recorta el contenid
         // o de la valoración como fallback.
         '{valoracion_resumen}' => get_post_meta( $post_id, 'valoracion_resumen', true ) ? get_post_meta( $post_id, 'valoracion_resumen', true ) : wp_trim_words( $post->post_content, 55 ),

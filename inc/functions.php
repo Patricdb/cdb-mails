@@ -27,6 +27,32 @@ function cdb_mails_log( $message ) {
 }
 
 /**
+ * Genera el resumen en HTML de una valoración.
+ *
+ * @param array $data Datos de la valoración.
+ * @return string HTML con la lista de criterios y valores.
+ */
+function cdb_mails_build_review_summary( $data ) {
+    $ignore  = array( 'id', 'post_id', 'user_id', 'created_at', 'updated_at' );
+    $summary = '<ul>';
+
+    foreach ( $data as $field => $value ) {
+        if ( in_array( $field, $ignore, true ) ) {
+            continue;
+        }
+        if ( '' === $value || null === $value ) {
+            continue;
+        }
+
+        $label   = ucwords( str_replace( '_', ' ', $field ) );
+        $summary .= '<li>' . esc_html( $label ) . ': ' . esc_html( $value ) . '</li>';
+    }
+
+    $summary .= '</ul>';
+    return $summary;
+}
+
+/**
  * Envía la notificación por email de nueva valoración.
  *
  * @param int    $review_id ID de la nueva valoración (fila en la tabla personalizada)
@@ -81,11 +107,20 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
     // Obtener nombre del usuario valorado
     $user_name = $user->display_name;
 
-    // Obtener nombre del bar (o del empleado si se prefiere personalizar)
+    // Obtener nombre del bar o empleado valorado
     $bar_name = get_the_title( $post_id );
 
-    // Preparar resumen de valoración
-    $valoracion_resumen = 'Nueva valoración recibida.';
+    // Seleccionar el texto principal según el tipo de valoración
+    // para mostrar "empleado" o "bar" correctamente en el email.
+    if ( 'empleado' === $type ) {
+        $intro_text = 'Has recibido una nueva valoración para tu empleado <b>' . $bar_name . '</b>';
+    } else {
+        $intro_text = 'Has recibido una nueva valoración para tu bar <b>' . $bar_name . '</b>';
+    }
+
+    // Construir de forma dinámica el listado de criterios evaluados
+    // generando una lista en HTML con cada campo y su valor.
+    $valoracion_resumen = cdb_mails_build_review_summary( (array) $row );
 
     // URL al perfil del usuario valorado (post del empleado o bar)
     $profile_url = get_permalink( $post_id );
@@ -109,8 +144,8 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
     cdb_mails_log( 'Plantilla cargada correctamente. Procediendo al envío.' );
 
     // Sustituir variables en el cuerpo del email
-    $search  = array( '{send_date}', '{user_name}', '{bar_name}', '{valoracion_resumen}', '{profile_url}', '{review_date}' );
-    $replace = array( $send_date, $user_name, $bar_name, $valoracion_resumen, $profile_url, $review_date );
+    $search  = array( '{send_date}', '{user_name}', '{bar_name}', '{intro_text}', '{valoracion_resumen}', '{profile_url}', '{review_date}' );
+    $replace = array( $send_date, $user_name, $bar_name, $intro_text, $valoracion_resumen, $profile_url, $review_date );
 
     $subject = str_replace( $search, $replace, $tpl->subject );
     $body    = str_replace( $search, $replace, $tpl->body );
