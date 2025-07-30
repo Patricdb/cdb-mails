@@ -47,6 +47,11 @@ function cdb_mails_send_email( $to, $subject, $message, $headers = array(), $att
 add_action( 'save_post_cdb_valoracion', 'cdb_mails_new_valoracion_notification', 10, 3 );
 add_action( 'save_post_valoracion', 'cdb_mails_new_valoracion_notification', 10, 3 );
 
+// Integración con cdb-grafica: recibir notificación cuando se inserta una
+// valoración directamente en las tablas personalizadas.
+add_action( 'cdb_grafica_insert_bar_result', 'cdb_mails_handle_bar_result', 10, 1 );
+add_action( 'cdb_grafica_insert_empleado_result', 'cdb_mails_handle_empleado_result', 10, 1 );
+
 /**
  * Enviar notificación cuando se publique una nueva valoración.
  *
@@ -108,4 +113,17 @@ function cdb_mails_new_valoracion_notification( $post_id, $post, $update ) {
     $body    = str_replace( array_keys( $vars ), array_values( $vars ), $template['body'] );
 
     cdb_mails_send_email( $user->user_email, $subject, $body );
+}
+
+/**
+ * Procesar inserciones directas en las tablas personalizadas de cdb-grafica.
+ * Estas funciones actúan como puente con el plugin de gráficas y llaman a la
+ * función global encargada de enviar la notificación.
+ */
+function cdb_mails_handle_bar_result( $review_id ) {
+    cdb_mails_send_new_review_notification( $review_id, 'bar' );
+}
+
+function cdb_mails_handle_empleado_result( $review_id ) {
+    cdb_mails_send_new_review_notification( $review_id, 'empleado' );
 }

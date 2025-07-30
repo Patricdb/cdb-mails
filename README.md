@@ -30,6 +30,13 @@ El objetivo es proporcionar una base limpia para desarrollar un sistema de notif
 
 Se expone la función global `cdb_mails_send_new_review_notification( $review_id, $type )` para que otros plugins puedan disparar la notificación "Nueva valoración recibida".
 
+Desde la versión 0.3.3 el plugin también escucha los hooks
+`cdb_grafica_insert_bar_result` y `cdb_grafica_insert_empleado_result`,
+pensados para que el plugin **cdb-grafica** los lance tras insertar una
+valoración en sus tablas personalizadas. Al ejecutarse cualquiera de esos
+hooks se enviará automáticamente el aviso por correo utilizando la plantilla
+_Nueva valoración recibida_.
+
 - **$review_id**: identificador de la valoración en la tabla personalizada.
 - **$type**: puede ser `bar` o `empleado` según la tabla utilizada.
 
