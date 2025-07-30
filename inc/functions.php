@@ -150,6 +150,14 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
     $subject = str_replace( $search, $replace, $tpl->subject );
     $body    = str_replace( $search, $replace, $tpl->body );
 
+    // Personalizar el asunto para incluir el tipo y el nombre del objeto
+    // valorado. Se usa una versión sin etiquetas HTML para mayor compatibilidad.
+    if ( 'empleado' === $type ) {
+        $subject = 'Has recibido una nueva valoración para tu empleado ' . wp_strip_all_tags( $bar_name );
+    } else {
+        $subject = 'Has recibido una nueva valoración para tu bar ' . wp_strip_all_tags( $bar_name );
+    }
+
     // Enviar email utilizando el wrapper del plugin.
     $sent = cdb_mails_send_email( $user->user_email, $subject, $body );
     if ( $sent ) {
