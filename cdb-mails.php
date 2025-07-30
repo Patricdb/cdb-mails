@@ -2,7 +2,7 @@
 /**
  * Plugin Name: cdb-mails
  * Description: Gestor básico de notificaciones por correo electrónico.
- * Version: 0.2.0
+ * Version: 0.3.0
  * Author: Proyecto CdB
  * License: GPL v2 or later
  */
@@ -44,6 +44,9 @@ function cdb_mails_activate() {
     ) $charset_collate;";
 
     dbDelta( $sql );
+
+    // Crear plantilla por defecto si no existe.
+    cdb_mails_ensure_default_template();
 }
 
 function cdb_mails_deactivate() {
