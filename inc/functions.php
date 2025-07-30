@@ -47,8 +47,8 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
             return;
         }
         cdb_mails_log( 'Valoración de empleado encontrada. Post ID ' . $row->post_id . ' / User ID ' . $row->user_id );
-        $post_id = $row->post_id;
-        $user_id = $row->user_id;
+        $post_id     = $row->post_id;
+        $reviewer_id = $row->user_id;
     } elseif ( $type === 'bar' ) {
         $table = $wpdb->prefix . 'grafica_bar_results';
         $row   = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE id = %d", $review_id ) );
@@ -57,20 +57,26 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
             return;
         }
         cdb_mails_log( 'Valoración de bar encontrada. Post ID ' . $row->post_id . ' / User ID ' . $row->user_id );
-        $post_id = $row->post_id;
-        $user_id = $row->user_id;
+        $post_id     = $row->post_id;
+        $reviewer_id = $row->user_id;
     } else {
         return;
     }
 
-    // Obtener datos del usuario valorado (destinatario)
-    $user = get_userdata( $user_id );
-    if ( ! $user || ! $user->user_email ) {
-        cdb_mails_log( 'Usuario sin email para la valoración ' . $review_id );
+    // Obtener el post valorado para extraer el autor (propietario)
+    $post = get_post( $post_id );
+    if ( ! $post ) {
+        cdb_mails_log( 'Post no encontrado para la valoración ' . $review_id );
         return;
     }
 
-    cdb_mails_log( 'Se enviará notificación a ' . $user->user_email );
+    $user = get_user_by( 'ID', $post->post_author );
+    if ( ! $user || ! $user->user_email ) {
+        cdb_mails_log( 'Autor sin email para el post ' . $post_id );
+        return;
+    }
+
+    cdb_mails_log( 'Se enviará notificación a ' . $user->user_email . ' (autor del post)' );
 
     // Obtener nombre del usuario valorado
     $user_name = $user->display_name;
@@ -81,8 +87,8 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
     // Preparar resumen de valoración
     $valoracion_resumen = 'Nueva valoración recibida.';
 
-    // URL al perfil del usuario valorado
-    $profile_url = get_author_posts_url( $user_id );
+    // URL al perfil del usuario valorado (post del empleado o bar)
+    $profile_url = get_permalink( $post_id );
 
     // Fecha de envío y fecha de la valoración
     $send_date   = date_i18n( 'd \d\e F \d\e Y' );
@@ -114,7 +120,7 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
     if ( $sent ) {
         cdb_mails_log( 'Notificación enviada correctamente a ' . $user->user_email );
     } else {
-        cdb_mails_log( 'Fallo al enviar la notificación al usuario ID ' . $user_id );
+        cdb_mails_log( 'Fallo al enviar la notificación al autor ID ' . $user->ID );
     }
 }
 
