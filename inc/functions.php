@@ -33,14 +33,30 @@ function cdb_mails_log( $message ) {
  * @return string HTML con la lista de criterios y valores.
  */
 function cdb_mails_build_review_summary( $data ) {
-    $ignore  = array( 'id', 'post_id', 'user_id', 'created_at', 'updated_at' );
+    $ignore  = array(
+        'id',
+        'post_id',
+        'user_id',
+        'created_at',
+        'updated_at',
+        'user_role',
+        'reviewer_role',
+        'comments',
+    );
+
     $summary = '<ul>';
 
     foreach ( $data as $field => $value ) {
         if ( in_array( $field, $ignore, true ) ) {
             continue;
         }
+
         if ( '' === $value || null === $value ) {
+            continue;
+        }
+
+        // Solo mostrar campos numéricos considerados criterios de valoración.
+        if ( ! is_numeric( $value ) ) {
             continue;
         }
 
