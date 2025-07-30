@@ -6,6 +6,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Escribir un mensaje en el log del plugin y almacenarlo para mostrarlo en el
+ * administrador.
+ *
+ * @param string $message Mensaje a registrar.
+ */
+function cdb_mails_log( $message ) {
+    // Registrar en el log de PHP cuando WP_DEBUG_LOG está habilitado.
+    if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+        error_log( '[cdb-mails] ' . $message );
+    }
+
+    // Guardar un historial reducido para mostrarlo en el admin.
+    $errors   = get_option( 'cdb_mails_errors', array() );
+    $errors[] = date_i18n( 'Y-m-d H:i:s' ) . ' - ' . $message;
+    if ( count( $errors ) > 20 ) { // Limitar a los últimos 20 mensajes.
+        $errors = array_slice( $errors, -20 );
+    }
+    update_option( 'cdb_mails_errors', $errors );
+}
+
+/**
  * Envía la notificación por email de nueva valoración.
  *
  * @param int    $review_id ID de la nueva valoración (fila en la tabla personalizada)
@@ -14,11 +35,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 function cdb_mails_send_new_review_notification( $review_id, $type ) {
     global $wpdb;
 
-    // Determinar tabla y obtener datos básicos
+    // Determinar tabla y obtener datos básicos.
     if ( $type === 'empleado' ) {
         $table = $wpdb->prefix . 'grafica_empleado_results';
         $row   = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE id = %d", $review_id ) );
         if ( ! $row ) {
+            cdb_mails_log( 'No se encontró la valoración de empleado con ID ' . $review_id );
             return;
         }
         $post_id = $row->post_id;
@@ -27,6 +49,7 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
         $table = $wpdb->prefix . 'grafica_bar_results';
         $row   = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE id = %d", $review_id ) );
         if ( ! $row ) {
+            cdb_mails_log( 'No se encontró la valoración de bar con ID ' . $review_id );
             return;
         }
         $post_id = $row->post_id;
@@ -38,6 +61,7 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
     // Obtener datos del usuario valorado (destinatario)
     $user = get_userdata( $user_id );
     if ( ! $user || ! $user->user_email ) {
+        cdb_mails_log( 'Usuario sin email para la valoración ' . $review_id );
         return;
     }
 
@@ -57,13 +81,15 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
     $send_date   = date_i18n( 'd \d\e F \d\e Y' );
     $review_date = date_i18n( 'd \d\e F \d\e Y', strtotime( $row->created_at ?? 'now' ) );
 
-    // Buscar la plantilla “Nueva valoración recibida” en la tabla de plantillas
+    // Asegurar que la plantilla por defecto existe.
+    cdb_mails_ensure_default_template();
     $tpl_table = $wpdb->prefix . 'cdb_mail_templates';
     $tpl       = $wpdb->get_row(
         $wpdb->prepare( "SELECT * FROM $tpl_table WHERE name = %s LIMIT 1", 'Nueva valoración recibida' )
     );
 
     if ( ! $tpl ) {
+        cdb_mails_log( 'Plantilla "Nueva valoración recibida" no encontrada.' );
         return;
     }
 
@@ -74,7 +100,33 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
     $subject = str_replace( $search, $replace, $tpl->subject );
     $body    = str_replace( $search, $replace, $tpl->body );
 
-    // Enviar email
-    wp_mail( $user->user_email, $subject, $body, array( 'Content-Type: text/html; charset=UTF-8' ) );
+    // Enviar email utilizando el wrapper del plugin.
+    $sent = cdb_mails_send_email( $user->user_email, $subject, $body );
+    if ( ! $sent ) {
+        cdb_mails_log( 'Fallo al enviar la notificación al usuario ID ' . $user_id );
+    }
 }
+
+/**
+ * Mostrar avisos en el administrador si existen errores registrados.
+ */
+function cdb_mails_admin_error_notice() {
+    if ( ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+
+    $errors = get_option( 'cdb_mails_errors', array() );
+    if ( empty( $errors ) ) {
+        return;
+    }
+
+    echo '<div class="notice notice-error"><p>';
+    foreach ( $errors as $err ) {
+        echo esc_html( $err ) . '<br />';
+    }
+    echo '</p></div>';
+
+    delete_option( 'cdb_mails_errors' );
+}
+add_action( 'admin_notices', 'cdb_mails_admin_error_notice' );
 
