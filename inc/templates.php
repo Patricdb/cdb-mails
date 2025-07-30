@@ -143,21 +143,26 @@ function cdb_mails_ensure_default_template() {
   <meta charset="UTF-8" />
   <title>Notificación de Nueva Valoración</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    @media only screen and (max-width:700px){
+      .main-container { padding: 10px !important; }
+    }
+  </style>
 </head>
-<body style="background: #faf8ee; color: #232323; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background: #faf8ee;">
+<body bgcolor="#faf8ee" style="background:#faf8ee;color:#232323;font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;margin:0;padding:0;">
+  <table width="100%" cellpadding="0" cellspacing="0" bgcolor="#faf8ee" style="background:#faf8ee;color:#232323;">
     <tr>
-      <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background: #faf8ee; margin: 32px auto;">
+      <td align="center" class="main-container" bgcolor="#faf8ee" style="background:#faf8ee;color:#232323;padding:20px 0;">
+        <table width="600" cellpadding="0" cellspacing="0" bgcolor="#faf8ee" style="max-width:600px;width:100%;background:#faf8ee;margin:32px auto;">
           <tr>
-            <td style="padding: 32px 0 16px 0;">
+            <td bgcolor="#faf8ee" style="background:#faf8ee;color:#232323;padding:32px 0 16px 0;">
               <!-- Logo y fecha de envío -->
-              <table width="100%">
+              <table width="100%" bgcolor="#faf8ee" style="background:#faf8ee;color:#232323;">
                 <tr>
-                  <td align="left" style="font-size: 2.5em; font-weight: bold; letter-spacing: -2px;">
+                  <td align="left" bgcolor="#faf8ee" style="background:#faf8ee;color:#232323;font-size:2.5em;font-weight:bold;letter-spacing:-2px;">
                     CdB_
                   </td>
-                  <td align="right" style="font-size: 1em; color: #232323;">
+                  <td align="right" bgcolor="#faf8ee" style="background:#faf8ee;color:#232323;font-size:1em;">
                     {send_date}
                   </td>
                 </tr>
@@ -165,12 +170,12 @@ function cdb_mails_ensure_default_template() {
             </td>
           </tr>
           <tr>
-            <td>
+            <td bgcolor="#faf8ee" style="background:#faf8ee;color:#232323;">
               <hr style="border: none; border-top: 2px solid #232323; margin: 0 0 32px 0;">
             </td>
           </tr>
           <tr>
-            <td style="padding: 0 0 16px 0;">
+            <td bgcolor="#faf8ee" style="background:#faf8ee;color:#232323;padding:0 0 16px 0;">
               <h1 style="font-size: 2em; font-weight: bold; margin: 0 0 24px 0;">
                 ¡Tienes una nueva valoración!
               </h1>
@@ -192,17 +197,17 @@ function cdb_mails_ensure_default_template() {
             </td>
           </tr>
           <tr>
-            <td>
+            <td bgcolor="#faf8ee" style="background:#faf8ee;color:#232323;">
               <hr style="border: none; border-top: 2px solid #232323; margin: 32px 0 0 0;">
             </td>
           </tr>
           <tr>
-            <td align="right" style="font-size: 1em; color: #232323; padding-top: 16px;">
+            <td align="right" bgcolor="#faf8ee" style="background:#faf8ee;color:#232323;font-size:1em;padding-top:16px;">
               Equipo Proyecto CdB
             </td>
           </tr>
           <tr>
-            <td align="right" style="font-size: 0.9em; color: #232323; padding-top: 8px;">
+            <td align="right" bgcolor="#faf8ee" style="background:#faf8ee;color:#232323;font-size:0.9em;padding-top:8px;">
               Valoración recibida el {review_date}
             </td>
           </tr>
