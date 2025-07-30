@@ -2,7 +2,7 @@
 /**
  * Plugin Name: cdb-mails
  * Description: Gestor básico de notificaciones por correo electrónico.
- * Version: 0.1.0
+ * Version: 0.2.0
  * Author: Proyecto CdB
  * License: GPL v2 or later
  */
@@ -25,7 +25,23 @@ register_activation_hook( __FILE__, 'cdb_mails_activate' );
 register_deactivation_hook( __FILE__, 'cdb_mails_deactivate' );
 
 function cdb_mails_activate() {
-    // Se ejecutará al activar el plugin
+    // Crear tabla personalizada para plantillas de correo
+    global $wpdb;
+
+    $table_name      = $wpdb->prefix . 'cdb_mail_templates';
+    $charset_collate = $wpdb->get_charset_collate();
+
+    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+    $sql = "CREATE TABLE $table_name (
+        id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+        name varchar(255) NOT NULL,
+        subject varchar(255) NOT NULL,
+        body longtext NOT NULL,
+        PRIMARY KEY  (id)
+    ) $charset_collate;";
+
+    dbDelta( $sql );
 }
 
 function cdb_mails_deactivate() {
