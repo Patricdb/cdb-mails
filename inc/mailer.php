@@ -21,13 +21,24 @@ function cdb_mails_send_email( $to, $subject, $message, $headers = array(), $att
         cdb_mails_log( 'Llamada a wp_mail() para ' . $to );
     }
 
-    $content_type = 'Content-Type: text/html; charset=UTF-8';
+    $content_type  = 'Content-Type: text/html; charset=UTF-8';
+    $from_name     = 'CdB_';
+    $from_email    = 'hola@proyectocdb.es';
+    $from_header   = 'From: ' . $from_name . ' <' . $from_email . '>';
+    $reply_header  = 'Reply-To: ' . $from_email;
 
     if ( empty( $headers ) ) {
-        $headers = array( $content_type );
+        $headers = array( $from_header, $reply_header, $content_type );
     } else {
         if ( ! is_array( $headers ) ) {
             $headers = array( $headers );
+        }
+
+        // Eliminar cabeceras From/Reply-To personalizadas para evitar conflictos.
+        foreach ( $headers as $key => $header ) {
+            if ( stripos( $header, 'from:' ) === 0 || stripos( $header, 'reply-to:' ) === 0 ) {
+                unset( $headers[ $key ] );
+            }
         }
 
         $has_content_type = false;
@@ -41,6 +52,26 @@ function cdb_mails_send_email( $to, $subject, $message, $headers = array(), $att
         if ( ! $has_content_type ) {
             $headers[] = $content_type;
         }
+
+        // Añadir nuestras cabeceras de remitente y reply-to.
+        array_unshift( $headers, $reply_header );
+        array_unshift( $headers, $from_header );
+    }
+
+    // Comprobar que las cabeceras requeridas se han establecido correctamente.
+    $has_from     = false;
+    $has_reply_to = false;
+    foreach ( $headers as $header ) {
+        if ( stripos( $header, 'from:' ) === 0 ) {
+            $has_from = true;
+        }
+        if ( stripos( $header, 'reply-to:' ) === 0 ) {
+            $has_reply_to = true;
+        }
+    }
+
+    if ( ( ! $has_from || ! $has_reply_to ) && function_exists( 'cdb_mails_log' ) ) {
+        cdb_mails_log( 'Advertencia: no se pudo establecer el remitente o el reply-to correctamente.' );
     }
 
     return wp_mail( $to, $subject, $message, $headers, $attachments );
