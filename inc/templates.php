@@ -146,6 +146,11 @@ function cdb_mails_render_templates_page() {
         return;
     }
 
+    if ( 'send_test' === $action && $id ) {
+        cdb_mails_render_send_test_form( $id );
+        return;
+    }
+
     cdb_mails_render_templates_list();
 }
 
@@ -169,6 +174,7 @@ function cdb_mails_render_templates_list() {
         foreach ( $templates as $template ) {
             $edit_link   = esc_url( admin_url( 'admin.php?page=cdb-mail-templates&action=edit&id=' . $template['id'] ) );
             $delete_link = wp_nonce_url( admin_url( 'admin.php?page=cdb-mail-templates&action=delete&id=' . $template['id'] ), 'cdb_mails_delete_template_' . $template['id'] );
+            $test_link   = esc_url( admin_url( 'admin.php?page=cdb-mail-templates&action=send_test&id=' . $template['id'] ) );
 
             echo '<tr>';
             echo '<td>' . esc_html( $template['id'] ) . '</td>';
@@ -176,7 +182,8 @@ function cdb_mails_render_templates_list() {
             echo '<td>' . esc_html( $template['subject'] ) . '</td>';
             echo '<td>';
             echo '<a href="' . $edit_link . '">Editar</a> | ';
-            echo '<a href="' . $delete_link . '" onclick="return confirm(\'¿Eliminar esta plantilla?\');">Eliminar</a>';
+            echo '<a href="' . $delete_link . '" onclick="return confirm(\'¿Eliminar esta plantilla?\');">Eliminar</a> | ';
+            echo '<a href="' . $test_link . '">Enviar prueba</a>';
             echo '</td>';
             echo '</tr>';
         }
@@ -238,6 +245,78 @@ function cdb_mails_render_template_form( $id = 0 ) {
 
     submit_button( $is_edit ? 'Actualizar plantilla' : 'Crear plantilla' );
 
+    echo '</form>';
+    echo '</div>';
+}
+
+/**
+ * Mostrar formulario para enviar un email de prueba con una plantilla.
+ */
+function cdb_mails_render_send_test_form( $id ) {
+    // Obtener la plantilla seleccionada.
+    $template = cdb_mails_get_template_by_id( $id );
+
+    if ( ! $template ) {
+        echo '<div class="wrap"><p>Plantilla no encontrada.</p></div>';
+        return;
+    }
+
+    // Valores de ejemplo para las variables disponibles.
+    $test_vars = array(
+        '{user_name}' => 'Usuario Demo',
+        '{bar_name}'  => 'Bar de Prueba',
+        '{date}'      => date_i18n( get_option( 'date_format' ) ),
+    );
+
+    // Procesar el envío cuando el formulario se ha enviado.
+    if ( isset( $_POST['cdb_mails_send_test_nonce'] ) && wp_verify_nonce( $_POST['cdb_mails_send_test_nonce'], 'cdb_mails_send_test' ) ) {
+        $email = isset( $_POST['test_email'] ) ? sanitize_email( wp_unslash( $_POST['test_email'] ) ) : '';
+
+        if ( empty( $email ) || ! is_email( $email ) ) {
+            echo '<div class="error notice"><p>Dirección de correo no válida.</p></div>';
+        } else {
+            $subject = str_replace( array_keys( $test_vars ), array_values( $test_vars ), $template['subject'] );
+            $body    = str_replace( array_keys( $test_vars ), array_values( $test_vars ), $template['body'] );
+
+            $sent = wp_mail( $email, $subject, $body );
+
+            if ( $sent ) {
+                echo '<div class="updated notice"><p>Email de prueba enviado correctamente a ' . esc_html( $email ) . '.</p></div>';
+            } else {
+                echo '<div class="error notice"><p>No se pudo enviar el email de prueba.</p></div>';
+            }
+        }
+    }
+
+    // Vista previa del asunto y cuerpo procesados.
+    $preview_subject = str_replace( array_keys( $test_vars ), array_values( $test_vars ), $template['subject'] );
+    $preview_body    = str_replace( array_keys( $test_vars ), array_values( $test_vars ), $template['body'] );
+
+    echo '<div class="wrap">';
+    echo '<h1>Enviar prueba</h1>';
+
+    echo '<p><strong>Asunto original:</strong> ' . esc_html( $template['subject'] ) . '</p>';
+    echo '<p><strong>Cuerpo original:</strong></p>';
+    echo '<div style="background:#fff;border:1px solid #ddd;padding:10px;">' . wp_kses_post( $template['body'] ) . '</div>';
+
+    echo '<h2>Valores de prueba</h2>';
+    echo '<ul>';
+    foreach ( $test_vars as $var => $value ) {
+        echo '<li>' . esc_html( $var ) . ' &rarr; ' . esc_html( $value ) . '</li>';
+    }
+    echo '</ul>';
+
+    echo '<h2>Vista previa del email de prueba</h2>';
+    echo '<p><strong>Asunto:</strong> ' . esc_html( $preview_subject ) . '</p>';
+    echo '<div style="background:#fff;border:1px solid #ddd;padding:10px;">' . wpautop( wp_kses_post( $preview_body ) ) . '</div>';
+
+    echo '<form method="post" style="margin-top:20px;">';
+    wp_nonce_field( 'cdb_mails_send_test', 'cdb_mails_send_test_nonce' );
+    echo '<table class="form-table">';
+    echo '<tr><th><label for="test_email">Enviar a</label></th>';
+    echo '<td><input type="email" name="test_email" id="test_email" class="regular-text" required></td></tr>';
+    echo '</table>';
+    submit_button( 'Enviar email de prueba' );
     echo '</form>';
     echo '</div>';
 }
