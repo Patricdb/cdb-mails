@@ -35,6 +35,9 @@ function cdb_mails_log( $message ) {
 function cdb_mails_send_new_review_notification( $review_id, $type ) {
     global $wpdb;
 
+    // Log de inicio de la función con los parámetros recibidos.
+    cdb_mails_log( sprintf( 'Iniciando envio de notificación. review_id=%d, type=%s', $review_id, $type ) );
+
     // Determinar tabla y obtener datos básicos.
     if ( $type === 'empleado' ) {
         $table = $wpdb->prefix . 'grafica_empleado_results';
@@ -43,6 +46,7 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
             cdb_mails_log( 'No se encontró la valoración de empleado con ID ' . $review_id );
             return;
         }
+        cdb_mails_log( 'Valoración de empleado encontrada. Post ID ' . $row->post_id . ' / User ID ' . $row->user_id );
         $post_id = $row->post_id;
         $user_id = $row->user_id;
     } elseif ( $type === 'bar' ) {
@@ -52,6 +56,7 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
             cdb_mails_log( 'No se encontró la valoración de bar con ID ' . $review_id );
             return;
         }
+        cdb_mails_log( 'Valoración de bar encontrada. Post ID ' . $row->post_id . ' / User ID ' . $row->user_id );
         $post_id = $row->post_id;
         $user_id = $row->user_id;
     } else {
@@ -64,6 +69,8 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
         cdb_mails_log( 'Usuario sin email para la valoración ' . $review_id );
         return;
     }
+
+    cdb_mails_log( 'Se enviará notificación a ' . $user->user_email );
 
     // Obtener nombre del usuario valorado
     $user_name = $user->display_name;
@@ -93,6 +100,8 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
         return;
     }
 
+    cdb_mails_log( 'Plantilla cargada correctamente. Procediendo al envío.' );
+
     // Sustituir variables en el cuerpo del email
     $search  = array( '{send_date}', '{user_name}', '{bar_name}', '{valoracion_resumen}', '{profile_url}', '{review_date}' );
     $replace = array( $send_date, $user_name, $bar_name, $valoracion_resumen, $profile_url, $review_date );
@@ -102,7 +111,9 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
 
     // Enviar email utilizando el wrapper del plugin.
     $sent = cdb_mails_send_email( $user->user_email, $subject, $body );
-    if ( ! $sent ) {
+    if ( $sent ) {
+        cdb_mails_log( 'Notificación enviada correctamente a ' . $user->user_email );
+    } else {
         cdb_mails_log( 'Fallo al enviar la notificación al usuario ID ' . $user_id );
     }
 }
