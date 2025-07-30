@@ -19,6 +19,7 @@ $plugin_path = plugin_dir_path( __FILE__ );
 require_once $plugin_path . 'inc/admin.php';
 require_once $plugin_path . 'inc/mailer.php';
 require_once $plugin_path . 'inc/templates.php';
+require_once $plugin_path . 'inc/functions.php';
 
 // Hooks de activación y desactivación
 register_activation_hook( __FILE__, 'cdb_mails_activate' );
