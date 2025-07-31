@@ -175,3 +175,45 @@ function cdb_mails_handle_empleado_result( $review_id ) {
     }
     cdb_mails_send_new_review_notification( $review_id, 'empleado' );
 }
+
+/**
+ * Sobrescribir el email por defecto de WordPress al crear un nuevo usuario.
+ *
+ * Utiliza la plantilla "Bienvenida al nuevo usuario" para generar un mensaje
+ * en HTML y envía el correo con {@see cdb_mails_send_email()}.
+ *
+ * @param array   $email    Datos del correo generados por WordPress.
+ * @param WP_User $user     Objeto del nuevo usuario.
+ * @param string  $blogname Nombre del sitio.
+ * @return array  Datos vacíos para impedir el envío por defecto.
+ */
+function cdb_mails_override_new_user_email( $email, $user, $blogname ) {
+    cdb_mails_ensure_default_template();
+    $template = cdb_mails_get_template_by_name( 'Bienvenida al nuevo usuario' );
+
+    if ( ! $template ) {
+        return $email;
+    }
+
+    $key = get_password_reset_key( $user );
+    if ( is_wp_error( $key ) ) {
+        return $email;
+    }
+
+    $url = site_url( 'wp-login.php?action=rp&key=' . $key . '&login=' . rawurlencode( $user->user_login ), 'login' );
+
+    $vars = array(
+        '{send_date}'        => date_i18n( get_option( 'date_format' ) ),
+        '{user_login}'       => $user->user_login,
+        '{set_password_url}' => $url,
+    );
+
+    $subject = str_replace( array_keys( $vars ), array_values( $vars ), $template['subject'] );
+    $body    = str_replace( array_keys( $vars ), array_values( $vars ), $template['body'] );
+
+    cdb_mails_send_email( $user->user_email, $subject, $body );
+
+    // Evitar que WordPress envíe el mensaje plano predeterminado.
+    return array( 'to' => '', 'subject' => '', 'message' => '', 'headers' => array() );
+}
+add_filter( 'wp_new_user_notification_email', 'cdb_mails_override_new_user_email', 10, 3 );

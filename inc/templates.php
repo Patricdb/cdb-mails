@@ -21,13 +21,16 @@ function cdb_mails_templates_table() {
  */
 function cdb_mails_available_vars() {
     $vars = array(
-        '{send_date}'         => 'Fecha de envío',
-        '{user_name}'         => 'Nombre de usuario',
-        '{bar_name}'          => 'Nombre del bar',
-        '{intro_text}'        => 'Texto principal',
+        '{send_date}'          => 'Fecha de envío',
+        '{user_name}'          => 'Nombre de usuario',
+        '{bar_name}'           => 'Nombre del bar',
+        '{intro_text}'         => 'Texto principal',
         '{valoracion_resumen}' => 'Resumen de la valoración',
-        '{profile_url}'       => 'Enlace al perfil',
-        '{review_date}'       => 'Fecha de la valoración',
+        '{profile_url}'        => 'Enlace al perfil',
+        '{review_date}'        => 'Fecha de la valoración',
+        // Variables para correos de bienvenida.
+        '{user_login}'        => 'Nombre de usuario (login)',
+        '{set_password_url}'  => 'Enlace para establecer la contraseña',
     );
 
     return apply_filters( 'cdb_mails_template_vars', $vars );
@@ -131,13 +134,11 @@ function cdb_mails_get_template( $template_name ) {
  * Crear la plantilla por defecto si no existe.
  */
 function cdb_mails_ensure_default_template() {
+    // Plantilla de aviso de nueva valoración.
     $name = 'Nueva valoración recibida';
 
-    if ( cdb_mails_get_template_by_name( $name ) ) {
-        return;
-    }
-
-    $body = <<<HTML
+    if ( ! cdb_mails_get_template_by_name( $name ) ) {
+        $body = <<<HTML
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -203,14 +204,88 @@ function cdb_mails_ensure_default_template() {
 </body>
 </html>
 HTML;
+        $data = array(
+            'name'    => $name,
+            'subject' => '¡Has recibido una nueva valoración!',
+            'body'    => $body,
+        );
 
-    $data = array(
-        'name'    => $name,
-        'subject' => '¡Has recibido una nueva valoración!',
-        'body'    => $body,
-    );
+        cdb_mails_save_template( $data );
+    }
 
-    cdb_mails_save_template( $data );
+    // Plantilla de bienvenida para nuevos usuarios.
+    $welcome = 'Bienvenida al nuevo usuario';
+
+    if ( ! cdb_mails_get_template_by_name( $welcome ) ) {
+        $body = <<<HTML
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bienvenida al nuevo usuario</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    @media only screen and (max-width: 620px) {
+      .main-content { padding: 20px !important; }
+      .main-table { width: 100% !important; max-width: 100% !important; }
+    }
+  </style>
+</head>
+<body style="background: #faf8ee;" bgcolor="#faf8ee">
+  <table width="100%" cellpadding="0" cellspacing="0" bgcolor="#faf8ee" style="background:#faf8ee;">
+    <tr>
+      <td align="center">
+        <table class="main-table" width="600" cellpadding="0" cellspacing="0" bgcolor="#faf8ee" style="background:#faf8ee; max-width:600px; width:100%; border-collapse:separate; border-spacing:0;">
+          <tr>
+            <td class="main-content" style="padding: 32px 24px 24px 24px; background: #faf8ee; color: #232323; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; border-radius: 8px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 16px;">
+                <tr>
+                  <td align="left" style="font-size: 2.5em; font-weight: bold; letter-spacing: -2px;">
+                    CdB_
+                  </td>
+                  <td align="right" style="font-size: 1em;">
+                    {send_date}
+                  </td>
+                </tr>
+              </table>
+              <hr style="border: none; border-top: 2px solid #232323; margin: 0 0 32px 0;">
+              <h1 style="font-size: 2em; font-weight: bold; margin: 0 0 24px 0;">
+                ¡Bienvenido a Proyecto CdB!
+              </h1>
+              <div style="font-size: 1.2em; margin-bottom: 24px;">
+                Hola {user_login},<br><br>
+                Te damos la bienvenida a Proyecto CdB. Para establecer tu contraseña y acceder a la plataforma, haz clic en el siguiente botón.
+              </div>
+              <div style="margin-bottom: 24px;">
+                <a href="{set_password_url}" style="display:inline-block;padding:10px 24px;border-radius:6px;background:#232323;color:#faf8ee;font-weight:bold;text-decoration:none;font-size:1.1em;">
+                  Establecer contraseña
+                </a>
+              </div>
+              <div style="font-size: 1em; color: #555;">
+                Si no solicitaste esta cuenta, puedes ignorar este mensaje.
+              </div>
+              <hr style="border: none; border-top: 2px solid #232323; margin: 32px 0 0 0;">
+              <div align="right" style="font-size: 1em; color: #232323; padding-top: 16px;">
+                Equipo Proyecto CdB
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+HTML;
+
+        $data = array(
+            'name'    => $welcome,
+            'subject' => 'Te damos la bienvenida a Proyecto CdB',
+            'body'    => $body,
+        );
+
+        cdb_mails_save_template( $data );
+    }
 }
 
 /**
