@@ -166,6 +166,18 @@ function cdb_mails_send_new_review_notification( $review_id, $type ) {
     $subject = str_replace( $search, $replace, $tpl->subject );
     $body    = str_replace( $search, $replace, $tpl->body );
 
+    // Compatibilidad con plantillas antiguas que todavía utilicen la frase
+    // "por tu trabajo en" en lugar de la variable {intro_text}. En ese caso,
+    // reemplazamos esa porción por la nueva redacción adaptada al tipo.
+    if ( false === strpos( $tpl->body, '{intro_text}' ) ) {
+        $old_phrase = 'por tu trabajo en';
+        if ( 'empleado' === $type ) {
+            $body = str_replace( $old_phrase, 'para tu empleado', $body );
+        } else {
+            $body = str_replace( $old_phrase, 'para tu bar', $body );
+        }
+    }
+
     // Personalizar el asunto para incluir el tipo y el nombre del objeto
     // valorado. Se usa una versión sin etiquetas HTML para mayor compatibilidad.
     if ( 'empleado' === $type ) {
