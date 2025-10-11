@@ -1,10 +1,14 @@
 <?php
 /**
  * Plugin Name: cdb-mails
+ * Plugin URI:  https://proyectocdb.es
  * Description: Gestor básico de notificaciones por correo electrónico.
  * Version: 0.3.3
- * Author: Proyecto CdB
+ * Author:      CdB_
+ * Author URI:  https://proyectocdb.es
  * License: GPL v2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain: cdb-mails
  */
 
 // Evitar acceso directo
